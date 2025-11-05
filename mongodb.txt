@@ -1,0 +1,165 @@
+package mongo;
+
+  
+
+import com.mongodb.client.*;
+import org.bson.Document;
+import java.util.*;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.set;
+
+
+
+
+public class jdbc {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        
+        
+        String host = "10.10.8.119";
+        String dbName = "te31341_db";
+        String username = "te31341";
+        String password = "te31341";
+        
+        // connection string hai --> mongodb://username:password@host/dbname
+
+        
+       
+//        String connectionString = "mongodb://" + username + ":" + password + "@" + host + "/" + dbName;
+
+       
+        
+      
+        MongoClient mongoClient = MongoClients.create("mongodb://127.0.0.1:27017");
+        MongoDatabase database = mongoClient.getDatabase(dbName);
+        MongoCollection<Document> movies = database.getCollection("movies");
+
+        
+        
+        int choice;
+        do {
+            System.out.println("\n=== MongoDB CRUD Menu ===");
+            System.out.println("1. Add Movie");
+            
+            System.out.println("2. View All Movies");
+            System.out.println("3. Search Movie by Title");
+            System.out.println("4. Update Movie Rating");
+            System.out.println("5. Delete Movie by Title");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+            choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter title: ");
+                    String title = sc.nextLine();
+                    System.out.print("Enter director: ");
+                    String director = sc.nextLine();
+                    System.out.print("Enter release year: ");
+                    int year = sc.nextInt();
+                    sc.nextLine();
+                    
+                    
+                    
+                    System.out.print("Enter genres (comma separated): ");
+                    
+                    List<String> genres = Arrays.asList(sc.nextLine().split(","));
+                    System.out.print("Enter rating: ");
+                    double rating = sc.nextDouble();
+                    sc.nextLine();
+
+                    Document movie = new Document("title", title)
+                            .append("director", director)
+                            .append("releaseYear", year)
+                            .append("genre", genres)
+                            .append("rating", rating);
+
+                    movies.insertOne(movie);
+                    System.out.println("Movie added successfully.");
+                    break;
+
+                case 2:
+                    System.out.println("Movie List:");
+                    for (Document doc : movies.find()) {
+                        System.out.println(doc.toJson());
+                    }
+                    break;
+
+                case 3:
+                    System.out.print("Enter title to search: ");
+                    String searchTitle = sc.nextLine();
+                    Document found = movies.find(eq("title", searchTitle)).first();
+                    if (found != null)
+                    	
+                        System.out.println("Movie found: " + found.toJson());
+                    else
+                        System.out.println("No movie found with that title.");
+                    break;
+
+                case 4:
+                    System.out.print("Enter title to update rating: ");
+                    String updateTitle = sc.nextLine();
+                    System.out.print("Enter new rating: ");
+                    double newRating = sc.nextDouble();
+                    sc.nextLine();
+//                    Bson update = ;
+                    movies.updateMany(eq("title", updateTitle),set("rating", newRating));
+                    System.out.println("Movie rating updated successfully.");
+                    break;
+
+                case 5:
+                	System.out.print("Enter title to delete: ");
+                	String deleteTitle = sc.nextLine();
+                	movies.deleteOne(eq("title", deleteTitle));
+                	System.out.println("Movie deleted successfully.");
+                	break;
+                	
+//                	break;
+                case 6:
+                    System.out.println("Exiting...");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 6);
+
+        mongoClient.close();
+        sc.close();
+    }
+}
+
+
+
+// Testcase : 
+
+// 1.Insert:
+
+// === MongoDB CRUD Menu ===
+// 1. Add Movie
+// 2. View All Movies
+// 3. Search Movie by Title
+// 4. Update Movie Rating
+// 5. Delete Movie by Title
+// 6. Exit
+// Enter your choice:
+// 1
+// Enter title: Lagan
+// Enter director: keshav
+// Enter release year: 1999
+// Enter genres (comma separated): comedy,sports
+// Enter rating: 8 
+
+// output : 
+
+// [
+//     _id: ObjectId('69019a1a29678b40104df76a'),
+//     title: 'Lagan',
+//     director: 'keshav',
+//     releaseYear: 1999,
+//     genre: [ 'comedy', 'sports' ],
+//     rating: 8
+//   }
+// ]

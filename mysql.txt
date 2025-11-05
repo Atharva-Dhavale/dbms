@@ -1,0 +1,121 @@
+package three;
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class jdbc {
+    public static void main(String args[]) {
+        Scanner sc = new Scanner(System.in);
+
+        try {
+            // Step 1 - Load Driver
+        	
+            Class.forName("com.mysql.cj.jdbc.Driver"); // use com.mysql.cj for newer versions
+            // Step 2 - Establish Connection
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/ass_4", "root", "1977");
+            Statement stmt = con.createStatement();
+            // Create table if not exists
+            String createTable = "CREATE TABLE IF NOT EXISTS User_info ("
+                    + "u_id INT UNSIGNED NOT NULL AUTO_INCREMENT, "
+                    + "name VARCHAR(30), "
+                    + "email VARCHAR(50), "
+                    + "role ENUM('admin','user'), "
+                    + "created_at DATETIME, "
+                    + "PRIMARY KEY(u_id))";
+            stmt.executeUpdate(createTable);
+            int choice;
+            
+            do {
+                System.out.println("\nMENU");
+                System.out.println("1. Insert Entry");
+                System.out.println("2. Read Entries");
+                System.out.println("3. Update Entry");
+                System.out.println("4. Delete Entry");
+                System.out.println("5. Exit");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+                sc.nextLine();
+
+                switch (choice) {
+                    case 1: 
+                        System.out.print("Enter name: ");
+                        String name = sc.nextLine();
+                        System.out.print("Enter email: ");
+                        String email = sc.nextLine();
+                        System.out.print("Enter role (admin/user): ");
+                        String role = sc.nextLine();
+                        
+                        
+
+                        String insertSQL = "INSERT INTO User_info(name, email, role, created_at) VALUES (?, ?, ?, NOW())";
+                        PreparedStatement insertStmt = con.prepareStatement(insertSQL);
+                        insertStmt.setString(1, name);
+                        insertStmt.setString(2, email);
+                        insertStmt.setString(3, role);
+                        insertStmt.executeUpdate();
+                        System.out.println("Entry inserted successfully!");
+                        break;
+                        
+                        
+                    case 2: 
+                        ResultSet rs = stmt.executeQuery("SELECT * FROM User_info");
+                        System.out.println("\n User Table");
+                        while (rs.next()) {
+                            System.out.println("ID: " + rs.getInt("u_id")
+                                    + ", Name: " + rs.getString("name")
+                                    + ", Email: " + rs.getString("email")
+                                    + ", Role: " + rs.getString("role")
+                                    + ", Created At: " + rs.getTimestamp("created_at"));
+                        }
+                        break;
+
+                    case 3:
+                        System.out.print("Enter user ID to update: ");
+                        int uidUpdate = sc.nextInt();
+                        sc.nextLine();
+
+                        System.out.print("Enter new email: ");
+                        String newEmail = sc.nextLine();
+
+                        String updateSQL = "UPDATE User_info SET email = ? WHERE u_id = ?";
+                        PreparedStatement updateStmt = con.prepareStatement(updateSQL);
+                        updateStmt.setString(1, newEmail);
+                        
+                        updateStmt.setInt(2, uidUpdate);
+                        int updated = updateStmt.executeUpdate();
+                        if (updated > 0)
+                            System.out.println("Entry updated successfully!");
+                        else
+                            System.out.println("No entry found with ID " + uidUpdate);
+                        break;
+
+                    case 4: // Delete
+                        System.out.print("Enter user ID to delete: ");
+                        int uidDelete = sc.nextInt();
+
+                        String deleteSQL = "DELETE FROM User_info WHERE u_id = ?";
+                        PreparedStatement deleteStmt = con.prepareStatement(deleteSQL);
+                        deleteStmt.setInt(1, uidDelete);
+                        int deleted = deleteStmt.executeUpdate();
+                        if (deleted > 0)
+                            System.out.println("Entry deleted successfully!");
+                        else
+                            System.out.println("No entry found with ID " + uidDelete);
+                        break;
+
+                    case 5:
+                        System.out.println("Exiting...");
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            } while (choice != 5);
+
+            con.close();
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println("Error: " + e);
+        }
+    }
+}
